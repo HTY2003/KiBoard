@@ -41,7 +41,6 @@ def angle_hog(angle, mag, cell_size):
     Calculate histogram from angle and magnitude, with each histogram consisting of square cell of cell_size
     Note: Look in code for more details
     '''
-    #Convert angle to unsigned angles (181deg = 179deg)
     angle[angle > 180] -= np.int16(180)
     # 96,128 + 96,128 => 192,8,8,2
     combi = blockify(np.vstack(([mag.T], [angle.T])).T, cell_size, cell_size, 2)
@@ -49,6 +48,7 @@ def angle_hog(angle, mag, cell_size):
     # 192,8,8,2 => 192,64,2
     combi = combi.reshape(hxw, cell_size**2, 2)
     histolist = np.zeros((hxw, 9))
+    #create a list of histograms with 9 bins
     for i in range(hxw):
         for m,a in combi[i]:
             histogram = np.zeros(9)
@@ -61,27 +61,23 @@ def angle_hog(angle, mag, cell_size):
         histolist[i] = histogram
     n1 = int(angle.shape[0] / cell_size)
     n2 = int(hxw / n1)
+    #192,9 => 12,16,9
     histolist = histolist.reshape(n1, n2, 9)
     return histolist
 
-def mag_normalize(histo, cell_size):
+def mag_normalize(histo, block_size):
+    '''
+    Normalize histograms with blocks of 2x2 cells
+    '''
     h,w,z = histo.shape
-    newhistolist = np.zeros((h-1, w-1, (cell_size**2)*9))
+    newhistolist = np.zeros((h-1, w-1, (block_size**2)*9))
     for y in range(h-2):
         for x in range(w-2):
             block = histo[y:y+2,x:x+2].flatten()
             newhistolist[y,x] = np.linalg.norm(block) * block
     return newhistolist.flatten()
 
-def show(img, mag):
-    plt.subplot(1,2,1),plt.imshow(img,cmap = 'viridis')
-    plt.title('Original'), plt.xticks([]), plt.yticks([])
-    plt.subplot(1,2,2),plt.imshow(mag,cmap = 'viridis')
-    plt.title('Magnitude'), plt.xticks([]), plt.yticks([])
-    plt.show()
-
 img = cv2.imread('images/132x96.jpg',0)
 img = crop(img, 8)
 mag, angle = process(img)
 result = mag_normalize(angle_hog(angle, mag, 8), 2)
-#show(img, mag)

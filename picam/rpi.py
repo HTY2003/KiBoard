@@ -5,13 +5,13 @@ import time
 class PiCameraWrapper():
     def __init__(self, resolution, framerate):
         self.camera = PiCamera()
-        self.resolution = resolution
+        self.resolution = (640, 480)
         self.framerate = framerate
         self.rawCapture = PiRGBArray(self.camera, size=self.resolution)
         time.sleep(0.1)
     
     def image(format):
-        self.camera.capture(self.rawCapture, format=format)
+        self.camera.capture(self.rawCapture, format=format, resize=(128,64))
         return self.rawCapture.array
 
     def video(framerate, format):

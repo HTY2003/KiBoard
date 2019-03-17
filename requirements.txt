@@ -1,7 +1,7 @@
 timeit
 numpy
-scipy
 opencv
 matplotlib
+scipy
 scikit-image
 picamera[array]
