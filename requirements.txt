@@ -1,0 +1,7 @@
+timeit
+numpy
+scipy
+opencv
+matplotlib
+scikit-image
+picamera[array]

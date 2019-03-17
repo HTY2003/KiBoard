@@ -1,6 +1,10 @@
+import timeit
+
+setup = """
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+import multiprocessing
 
 np.set_printoptions(threshold=np.inf)
 
@@ -83,5 +87,9 @@ def show(img, mag):
 img = cv2.imread('images/132x96.jpg',0)
 img = crop(img, 8)
 mag, angle = process(img)
-result = mag_normalize(angle_hog(angle, mag, 8), 2)
-#show(img, mag)
+result = angle_hog(angle, mag, 8)
+result2 = mag_normalize(result, 2)
+"""
+
+print(timeit.timeit("result = angle_hog(angle, mag, 8)",setup=setup, number=100)/100)
+print(timeit.timeit("result2 = mag_normalize(result, 2)",setup=setup, number=100)/100)
