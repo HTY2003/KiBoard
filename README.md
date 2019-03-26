@@ -2,10 +2,27 @@
 Machine Learning Virtual Keyboard
 
 ## Plan
-1. Use Principal Component Analysis to quickly train a classifier for Histograms of Oriented Gradients.
+1. Perform image segmentation on the images to remove any distracting background features.
 
-2. Also use PCA to train a classifier for Local Binary Patterns.
+2. Use (Fisher's) Linear Discriminant Analysis to quickly train hand classifiers for Histograms of Oriented Gradients.
 
-3. Use Adaboost to combine differently shaped HOG classifiers and the LBP into a "boosted" classifier.
+3. Use Adaboost to ensemble differently shaped HOG classifiers into a "boosted" classifier.
 
-4. PROFIT
+4. Use image segmentation to also find the shadows of the hands
+
+5. Perform steps 2 and 3 for the shadows too.
+
+6. PROFIT
+
+## Progress
+### Things to be done
+* LDA
+* Image segmentation
+* Collecting big dataset
+* Adaboost
+* Shadow version of everything
+
+### Things already done
+* HOG
+
+### Overall Progress: 10%

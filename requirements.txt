@@ -3,4 +3,5 @@ opencv
 matplotlib
 scipy
 scikit-image
+scikit-learn
 picamera[array]
