@@ -4,7 +4,7 @@ import math
 import time
 
 def closest_node(node, nodes, ymin):
-    nodes = nodes[nodes[:, 1]< ymin]
+    #nodes = nodes[nodes[:, 1]< ymin]
     dist_2 = np.sum((nodes - node)**2, axis=1)
     closest = nodes[np.argmin(dist_2)]
     return tuple(closest)
@@ -21,9 +21,15 @@ def graytorgb(mask, framergb):
     return frame * frame * framergb
 
 class BackgroundSubtract:
-    def __init__(self, bgframe):
+    def __init__(self):
         self.aWeight = 0.5
-        self.bg = bgframe
+        self.bg = None
+
+    def calibrate(self, bgframe):
+        if self.bg == None:
+            self.bg = bgframe
+        else:
+            cv2.accumulateWeighted(bgframe, self.bg, self.aWeight)
 
     def foreground(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -54,7 +60,7 @@ class HandSegment:
         kernel = np.ones((9,9),np.uint8)
         frame = cv2.morphologyEx(frame, cv2.MORPH_OPEN, kernel)
         #frame = cv2.blur(frame,(17,30))
-        frame = cv2.blur(frame,(4,8))
+        frame = cv2.blur(frame,(8,10))
         _, final = cv2.threshold(frame, 20, 255, cv2.THRESH_BINARY)
         return final
 
@@ -122,26 +128,18 @@ class HandSegment:
             return results, count
 
 class ShadowSegment:
-    def calibrate(self, frame):
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2YCR_CB)
-        x, y, _ = frame.shape
-        _, r, b = frame[int(x/2), int(y/2)]
-        self.rmin = r - 10
-        self.rmax = r + 10
-        self.bmin = b - 10
-        self.bmax = b + 10
-
-    def extract(self, hand_mask, bg_mask):
-        '''hls = cv2.cvtColor(frame, cv2.COLOR_BGR2HLS)
+    def extract(self, rect):
+        hls = cv2.cvtColor(rect, cv2.COLOR_BGR2HLS)
         minrange = np.array([0, 0, 0])
-        maxrange = np.array([255, int(0.5*255), 255])
-        mask2 = cv2.inRange(hls, minrange, maxrange)'''
-        return cv2.bitwise_and(cv2.bitwise_not(hand_mask), bg_mask)
+        maxrange = np.array([255, int(0.4*255), 255])
+        mask = cv2.inRange(hls, minrange, maxrange)
+        size = rect.shape[0] * rect.shape[1]
+        return mask, cv2.countNonZero(mask)/size
 
-bg = cv2.imread("images/0.JPG", 0)
-framergb = cv2.imread("images/15.JPG")
-bg = cv2.resize(bg, (0,0), fx=0.1, fy = 0.1)
-framergb = cv2.resize(framergb, (0,0), fx=0.1, fy = 0.1)
+'''bg = cv2.imread("images/0.JPG", 0)
+framergb = cv2.imread("images/4.JPG")
+bg = cv2.resize(bg, (0,0), fx=0.2, fy = 0.2)
+framergb = cv2.resize(framergb, (0,0), fx=0.2, fy = 0.2)
 
 a = BackgroundSubtract(bg)
 b = a.foreground(framergb)
@@ -156,8 +154,8 @@ h = d.contour(i, framergb)
 print(h)
 
 f = ShadowSegment()
-f.calibrate(framergb)
-g = f.extract(i, b)
-g = graytorgb(g, framergb)
-cv2.imshow("hi",g)
-cv2.waitKey(0)
+z,g = f.extract(framergb)
+print(g)
+z = graytorgb(z, framergb)
+cv2.imshow("gay shut",z)
+cv2.waitKey(0)'''
