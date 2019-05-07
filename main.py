@@ -1,7 +1,10 @@
 import picamera
 import io
 import time
-from image_segment import BackgroundSubtract, HandSegment
+from image_helpers import graytorgb
+from background_subtract import BackgroundSubtract
+from hand_segment import HandSegment
+from shadow_analysis import ShadowAnalysis
 
 stream = io.BytesIO()
 
@@ -19,6 +22,7 @@ with picamera.PiCamera() as camera:
     camera.capture(stream, format='jpeg')
     with picamera.array.PiRGBArray(camera) as stream:
         bgsub = BackgroundSubtract()
+        segment = HandSegment()
         for i in range(30):
             camera.capture(stream, format='bgr')
             image = stream.array
@@ -29,4 +33,10 @@ with picamera.PiCamera() as camera:
             mask = bgsub.foreground(image)
             frame = graytorgb(mask, image)
             cv2.imshow("Subtracted", frame)
+            cv2.waitKey(0)
+            mask2 = segment.extract(frame)
+            mask2 = segment.denoise(mask2)
+            mask2 = segment.contour(mask2)
+            frame2 = graytorgb(mask2, image)
+            cv2.imshow("Detected", frame2)
             cv2.waitKey(0)

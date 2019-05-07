@@ -3,22 +3,7 @@ import numpy as np
 import math
 import time
 
-def closest_node(node, nodes, ymin):
-    #nodes = nodes[nodes[:, 1]< ymin]
-    dist_2 = np.sum((nodes - node)**2, axis=1)
-    closest = nodes[np.argmin(dist_2)]
-    return tuple(closest)
-
-def angle(start, centre, end):
-    ba = start - centre
-    bc = end - centre
-    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
-    angle = np.arccos(cosine_angle)
-    return np.degrees(angle)
-
-def graytorgb(mask, framergb):
-    frame = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
-    return frame * frame * framergb
+from image_helpers import graytorgb, closest_node, angle
 
 class BackgroundSubtract:
     def __init__(self):
@@ -127,14 +112,34 @@ class HandSegment:
                 cv2.waitKey(0)
             return results, count
 
-class ShadowSegment:
-    def extract(self, rect):
-        hls = cv2.cvtColor(rect, cv2.COLOR_BGR2HLS)
+class ShadowAnalysis:
+    def __init__(self):
+        self.above = 20
+        self.below = 10
+        self.left = 10
+        self.right = 10
+
+    def get_arrays(self, frame, coordinates):
+        array_list = []
+        for x,y in coordinates:
+            left = x - self.left
+            right = x + self.right
+            top = y - self.top
+            bottom = y + self.bottom
+            array_list.append(frame[left:right, top:bottom, :])
+        return array_list
+
+    def extract(self, array_list):
+        percentage_list = []
         minrange = np.array([0, 0, 0])
         maxrange = np.array([255, int(0.4*255), 255])
-        mask = cv2.inRange(hls, minrange, maxrange)
-        size = rect.shape[0] * rect.shape[1]
-        return mask, cv2.countNonZero(mask)/size
+        for array in array_list:
+            hls = cv2.cvtColor(rect, cv2.COLOR_BGR2HLS)
+            mask = cv2.inRange(hls, minrange, maxrange)
+            size = rect.shape[0] * rect.shape[1]
+            percentage = cv2.countNonZero(cv2.threshold(mask,0,255,cv2.THRESH_BINARY))/size
+            percentage_list.append(percentage)
+        return percentage_list
 
 '''bg = cv2.imread("images/0.JPG", 0)
 framergb = cv2.imread("images/4.JPG")

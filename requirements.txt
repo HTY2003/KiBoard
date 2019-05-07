@@ -1,7 +1,4 @@
-imutils
 numpy
 opencv
 opencv-contrib-python
-scipy
-scikit-learn
 picamera[array]
