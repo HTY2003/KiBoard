@@ -1,9 +1,5 @@
 import cv2
 import numpy as np
-import math
-import time
-
-from image_helpers import graytorgb
 
 class ShadowAnalysis:
     def __init__(self):
@@ -22,7 +18,7 @@ class ShadowAnalysis:
             array_list.append(frame[left:right, top:bottom, :])
         return array_list
 
-    def extract(self, array_list):
+    def analyse(self, array_list):
         percentage_list = []
         minrange = np.array([0, 0, 0])
         maxrange = np.array([255, int(0.4*255), 255])

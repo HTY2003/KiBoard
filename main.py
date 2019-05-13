@@ -23,6 +23,7 @@ with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         bgsub = BackgroundSubtract()
         segment = HandSegment()
+        shadow = ShadowAnalysis()
         for i in range(30):
             camera.capture(stream, format='bgr')
             image = stream.array
@@ -33,10 +34,13 @@ with picamera.PiCamera() as camera:
             mask = bgsub.foreground(image)
             frame = graytorgb(mask, image)
             cv2.imshow("Subtracted", frame)
-            cv2.waitKey(0)
+
             mask2 = segment.extract(frame)
             mask2 = segment.denoise(mask2)
-            mask2 = segment.contour(mask2)
+            mask2, coordinates = segment.contour(mask2)
             frame2 = graytorgb(mask2, image)
             cv2.imshow("Detected", frame2)
             cv2.waitKey(0)
+
+            results = shadow.get_arrays(image, coordinates)
+            results = shadow.analyse(results)
