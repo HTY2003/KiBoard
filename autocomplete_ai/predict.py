@@ -1,6 +1,6 @@
 import tensorflow as tf
 from build_and_train import build_graph
-from data import clean_text, testing_sorted
+from utils import clean_text
 
 def text_to_ints(text):
     '''Prepare the text for the model'''
@@ -10,10 +10,6 @@ def text_to_ints(text):
 # Create your own sentence or use one from the dataset
 text = "Spellin is difficult, whch is wyh you need to study everyday."
 text = text_to_ints(text)
-
-random = np.random.randint(0,len(testing_sorted))
-text = testing_sorted[random]
-text = noise(text, 0.95)
 
 checkpoint = "./kp=0.75,nl=2,th=0.95.ckpt"
 

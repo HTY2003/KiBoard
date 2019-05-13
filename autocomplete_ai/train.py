@@ -7,6 +7,16 @@ from tensorflow.python.layers.core import Dense
 from tensorflow.python.ops.rnn_cell_impl import _zero_state_tensors
 from data import vocab_to_int, training_sorted, testing_sorted, noise
 
+epochs = 100
+batch_size = 128
+num_layers = 2
+rnn_size = 512
+embedding_size = 128
+learning_rate = 0.0005
+direction = 2
+threshold = 0.95
+keep_probability = 0.75
+
 def model_inputs():
     '''Create palceholders for inputs to the model'''
 
@@ -227,17 +237,6 @@ def get_batches(sentences, batch_size, threshold):
             pad_sentences_noisy_lengths.append(len(sentence))
 
         yield pad_sentences_noisy_batch, pad_sentences_batch, pad_sentences_noisy_lengths, pad_sentences_lengths
-
-# The default parameters
-epochs = 100
-batch_size = 128
-num_layers = 2
-rnn_size = 512
-embedding_size = 128
-learning_rate = 0.0005
-direction = 2
-threshold = 0.95
-keep_probability = 0.75
 
 def build_graph(keep_prob, rnn_size, num_layers, batch_size, learning_rate, embedding_size, direction):
 
