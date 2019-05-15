@@ -7,9 +7,9 @@ from tensorflow.python.layers.core import Dense
 from tensorflow.python.ops.rnn_cell_impl import _zero_state_tensors
 from data import vocab_to_int, training_sorted, testing_sorted, noise
 
-epochs = 100
+epochs = 1
 batch_size = 128
-num_layers = 2
+num_layers = 3
 rnn_size = 512
 embedding_size = 128
 learning_rate = 0.0005
@@ -19,7 +19,6 @@ keep_probability = 0.75
 
 def model_inputs():
     '''Create palceholders for inputs to the model'''
-
     with tf.name_scope('inputs'):
         inputs = tf.placeholder(tf.int32, [None, None], name='inputs')
     with tf.name_scope('targets'):
@@ -406,13 +405,13 @@ def train(model, epochs, log_string):
             if stop_early == stop:
                 print("Stopping Training.")
                 break
-
-for keep_probability in [0.75]:
-    for num_layers in [2]:
-        for threshold in [0.95]:
-            log_string = 'kp={},nl={},th={}'.format(keep_probability,
-                                                    num_layers,
-                                                    threshold)
-            model = build_graph(keep_probability, rnn_size, num_layers, batch_size,
-                                learning_rate, embedding_size, direction)
-            train(model, epochs, log_string)
+if __name__ == "__main__":
+    for keep_probability in [0.75]:
+        for num_layers in [3]:
+            for threshold in [0.95]:
+                """log_string = 'kp={},nl={},th={}'.format(keep_probability,
+                                                        num_layers,
+                                                        threshold)"""
+                model = build_graph(keep_probability, rnn_size, num_layers, batch_size,
+                                    learning_rate, embedding_size, direction)
+                train(model, epochs, "autocomplete2")

@@ -1,6 +1,16 @@
 import tensorflow as tf
-from build_and_train import build_graph
+from data import vocab_to_int, int_to_vocab
 from utils import clean_text
+from train import build_graph
+epochs = 100
+batch_size = 128
+num_layers = 3
+rnn_size = 512
+embedding_size = 128
+learning_rate = 0.0005
+direction = 2
+threshold = 0.95
+keep_probability = 0.75
 
 def text_to_ints(text):
     '''Prepare the text for the model'''
@@ -11,7 +21,7 @@ def text_to_ints(text):
 text = "Spellin is difficult, whch is wyh you need to study everyday."
 text = text_to_ints(text)
 
-checkpoint = "./kp=0.75,nl=2,th=0.95.ckpt"
+checkpoint = "./autocomplete2.ckpt"
 
 model = build_graph(keep_probability, rnn_size, num_layers, batch_size, learning_rate, embedding_size, direction)
 

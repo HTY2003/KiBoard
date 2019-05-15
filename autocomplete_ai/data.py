@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from nltk.corpus import gutenberg
+from nltk.corpus import gutenberg, brown, webtext
 from utils import clean_text
 
-clean_books = [clean_text(gutenberg.raw(text)) for text in gutenberg.fileids()]
+clean_books = [clean_text(gutenberg.raw(text)) for text in gutenberg.fileids()] + \
+                [clean_text(brown.raw(text)) for text in brown.fileids()] + \
+                [clean_text(webtext.raw(text)) for text in webtext.fileids()]
 
 vocab_to_int = {}
 count = 0
