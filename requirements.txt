@@ -3,6 +3,8 @@ opencv
 opencv-contrib-python
 picamera[array]
 ntlk
-scikit-learn
+unidecode
 tensorflow
+keras
+wordfreq
 re
