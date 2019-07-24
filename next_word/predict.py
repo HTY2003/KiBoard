@@ -40,4 +40,4 @@ class NextWord:
         except KeyError:
             return []
 
-print(NextWord.predict("why", 3))
+print(NextWord.predict("great", 3))

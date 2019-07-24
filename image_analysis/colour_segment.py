@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from image_helpers import graytorgb, closest_node, angle
+from image_analysis.image_helpers import graytorgb, closest_node, angle
 
 class ColourSegment:
     def extract(self, frame):
@@ -16,24 +16,15 @@ class ColourSegment:
         u = yuv[:, :, 1]
         v = yuv[:, :, 2]
         sat = np.sqrt(np.square(u) + np.square(v))
-        mask2 = np.where(sat <= 220, True, False)
+        t3 = np.where(sat >= 5, True, False)
+        t4 = np.where(sat <= 220, True, False)
+        mask2 = np.logical_and(t3,t4)
 
-        minrange = np.array([20,40,95])
-        maxrange = np.array([255,255,255])
+        minrange = np.array([20,40,125])
+        maxrange = np.array([255,200,200])
         mask3 = cv2.inRange(frame, minrange, maxrange)
 
         return np.logical_and(mask1,mask2) * mask3
-
-    def shadow(self, frame):
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        mask1 = np.where(gray < 180, True, False)
-
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        minrange = np.array([0,0,0])
-        maxrange = np.array([255,int(0.2 * 255),185])
-        mask2 = cv2.inRange(hsv, minrange, maxrange)
-
-        return mask1 * mask2
 
     def denoise(self, frame):
         kernel = np.ones((5,5),np.uint8)
@@ -51,10 +42,12 @@ class ColourSegment:
                                         cv2.RETR_EXTERNAL,
                                         cv2.CHAIN_APPROX_SIMPLE)
         if len(contours) == 0:
-            return
+            return [], 0, None
         else:
             # find contours, convex hull, convexity defects, and bounding rectangle (centre of it too)
             segmented = max(contours, key=cv2.contourArea)
+            epsilon = 0.015*cv2.arcLength(segmented,True)
+            segmented = cv2.approxPolyDP(segmented, epsilon, True)
             chull = cv2.convexHull(segmented)
             defects = cv2.convexityDefects(segmented, cv2.convexHull(segmented, returnPoints=False))
             x,y,w,h = cv2.boundingRect(segmented)
@@ -63,8 +56,14 @@ class ColourSegment:
 
             # create an ellipse around the contours (overlap over each finger) to find ROI
             roi = np.zeros(frame.shape[:2], dtype="uint8")
-            ellipse = cv2.fitEllipse(segmented)
-            cv2.ellipse(roi,ellipse,255,1)
+            try:
+                ellipse = cv2.fitEllipse(segmented)
+            except cv2.error as e:
+                return [], 0, None
+            if ellipse[1][0] * ellipse[1][1] > 10000:
+                ellipse = ((ellipse[0][0], int(ellipse[0][1] + 0.1*ellipse[1][1])), ellipse[1], ellipse[2])
+                cv2.ellipse(roi,ellipse,255,1)
+
             if display.any():
                 cv2.ellipse(frame2,ellipse,(0,100,255),2)
             roi = cv2.bitwise_and(frame, frame, mask=roi)
@@ -74,15 +73,16 @@ class ColourSegment:
             count = 0
             results = []
             defectlist = []
-            for i in range(defects.shape[0]):
-                s,e,f,d = defects[i,0]
-                start = segmented[s][0]
-                end = segmented[e][0]
-                far = segmented[f][0]
-                degree = angle(start, far, end)
-                if degree > 20 and degree < 110:
-                    defectlist.append(end)
-                    defectlist.append(start)
+            if defects is not None:
+                for i in range(defects.shape[0]):
+                    s,e,f,d = defects[i,0]
+                    start = segmented[s][0]
+                    end = segmented[e][0]
+                    far = segmented[f][0]
+                    degree = angle(start, far, end)
+                    if degree > 20 and degree < 160:
+                        defectlist.append(end)
+                        defectlist.append(start)
             defectlist = np.array(defectlist)
             ellipse = cv2.ellipse(np.zeros(frame.shape[:2], dtype="uint8"), ellipse, 255, -1)
             # for each contour in the ROI, find the bounding rectangle
@@ -91,16 +91,13 @@ class ColourSegment:
             for c in cnts:
                 (x, y, w, h) = cv2.boundingRect(c)
                 midpoint = (int(x+w/2), int(y-h*0.2))
-                if ((cY * 1.5) > (y + h)) and w*h > 50:
+                if ((cY * 1.5) > (y + h)) and w*h > 40:
                     finalpoint = closest_node(midpoint, defectlist, y+h*0.5)
-                    if ellipse[finalpoint[1], finalpoint[0]] == 0:
+                    if finalpoint != (0,0) and ellipse[finalpoint[1], finalpoint[0]] == 0:
                         results.append(finalpoint)
                         count += 1
                         if display.any():
                             cv2.rectangle(frame2, (x,y,w,h), (255,255,0), 1)
                             cv2.circle(frame2, midpoint, 3, (255,0,0), -1)
                             cv2.circle(frame2, finalpoint, 5, (0,255,0), -1)
-            if display.any():
-                cv2.imshow("ayy", frame2)
-                cv2.waitKey(0)
-            return results, count
+            return results, count, frame2
