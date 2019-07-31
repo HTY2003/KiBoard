@@ -1,7 +1,5 @@
 numpy
 opencv
-opencv-contrib-python
-picamera[array]
 ntlk
 unidecode
 tensorflow
